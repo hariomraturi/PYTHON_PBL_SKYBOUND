@@ -1,6 +1,3 @@
-# Simple character definitions used by the game.
-# Tweak gravity (px/s^2) and flap_speed (px/s) to tune feel.
-# 'scale' is a small multiplier applied to the base sprite target height (not a direct scale_by).
 CHARACTERS = {
     "bird": {
         "display_name": "Bird",
