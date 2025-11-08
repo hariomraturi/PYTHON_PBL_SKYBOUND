@@ -30,7 +30,7 @@ class Game:
 
         # window
         self.win = pg.display.set_mode((self.width, self.height))
-        pg.display.set_caption("Flappy-like Game")
+        pg.display.set_caption("Skybound Game")
 
         # bird start position (above ground)
         start_pos = (100, int(self.ground_y * 0.25))
