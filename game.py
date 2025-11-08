@@ -7,32 +7,27 @@ from progress import ProgressManager
 
 pg.init()
 
-# Color constants
-SCORE_COLOR = (255, 0, 0)           # red
-HIGH_SCORE_COLOR = (0, 0, 139)     # dark blue
-MENU_TITLE_COLOR = (255, 215, 0)   # gold/yellow
-MENU_UNLOCKED_COLOR = (34, 139, 34)  # forest green
-MENU_LOCKED_COLOR = (120, 120, 120)  # grey
-MENU_SELECTED_COLOR = (255, 255, 0)  # bright yellow for selected arrow/text
+SCORE_COLOR = (255, 0, 0)           
+HIGH_SCORE_COLOR = (0, 0, 139)     
+MENU_TITLE_COLOR = (255, 215, 0)   
+MENU_UNLOCKED_COLOR = (34, 139, 34)  
+MENU_LOCKED_COLOR = (120, 120, 120)  
+MENU_SELECTED_COLOR = (255, 255, 0) 
 
 class Game:
     def __init__(self):
-        # Window config
         self.width = 600
         self.height = 768
-        self.ground_y = 568  # where ground begins
+        self.ground_y = 568  
 
-        # progress manager
+
         self.progress = ProgressManager("progress.json")
 
-        # selected char
         self.selected_char = self.progress.get_selected()
 
-        # window
         self.win = pg.display.set_mode((self.width, self.height))
-        pg.display.set_caption("Flappy-like Game")
+        pg.display.set_caption("Skybound Game")
 
-        # bird start position (above ground)
         start_pos = (100, int(self.ground_y * 0.25))
         self.bird = Bird(self.selected_char, start_pos=start_pos)
 
@@ -40,7 +35,7 @@ class Game:
         self.base_move_speed = 250
         self.move_speed = self.base_move_speed
 
-        # game state: 'menu', 'playing', 'falling'
+        
         self.state = 'menu'
 
         self.pipes = []
@@ -65,7 +60,7 @@ class Game:
                     pg.quit()
                     sys.exit()
                 if event.type == pg.KEYDOWN:
-                    # In menu: allow selection keys
+                    
                     if self.state == 'menu':
                         if event.key == pg.K_1:
                             self.try_select("bird")
@@ -75,17 +70,17 @@ class Game:
                             self.try_select("plane")
 
                         if event.key == pg.K_RETURN:
-                            # start playing
+                            
                             self.reset_round()
                             self.state = 'playing'
                             self.bird.update_on = True
 
                     elif self.state == 'playing':
-                        # only in play allow flap
+                        
                         if event.key == pg.K_SPACE:
                             self.bird.flap()
                     elif self.state == 'falling':
-                        # during falling ignore inputs; player must wait to reach menu
+                        
                         pass
 
             self.updateEverything(dt)
@@ -95,7 +90,7 @@ class Game:
             self.clock.tick(60)
 
     def reset_round(self):
-        # reset pipes and score, create bird of current selection at start position
+        
         self.pipes = []
         self.pipe_generate_counter = 71
         self.score = 0
@@ -105,17 +100,17 @@ class Game:
         self.bird.update_on = False
 
     def try_select(self, char_name):
-        # only allow selecting unlocked characters when in menu
+    
         if self.progress.is_unlocked(char_name):
             self.selected_char = char_name
             self.progress.set_selected(char_name)
-            # update preview bird
+        
             start_pos = (100, int(self.ground_y * 0.25))
             self.bird = Bird(self.selected_char, start_pos=start_pos)
             self.bird.update_on = False
 
     def checkCollisions(self):
-        # If no pipes, still check ground contact while playing
+    
         if not self.pipes:
             if self.state == 'playing' and self.bird.rect.bottom >= self.ground_y:
                 self.bird.rect.bottom = self.ground_y
@@ -125,20 +120,19 @@ class Game:
                 self.progress.set_high_score(self.score)
             return
 
-        # Collision detection when playing: immediate collision triggers 'falling'
+        
         if self.state == 'playing':
             for pipe in self.pipes:
                 if self.bird.rect.colliderect(pipe.rect_down) or self.bird.rect.colliderect(pipe.rect_up):
-                    # Collision happened: start natural falling sequence.
-                    # Bird should stop any upward velocity and update under gravity.
+                    
                     self.state = 'falling'
                     self.bird.update_on = True
                     if self.bird.y_velocity < 0:
                         self.bird.y_velocity = 0.0
-                    # Important: freeze world motion — do NOT move ground or pipes while falling.
+                    
                     break
 
-            # while still in playing (no collision) check ground contact
+            
             if self.state == 'playing' and self.bird.rect.bottom >= self.ground_y:
                 self.bird.rect.bottom = self.ground_y
                 self.bird.y_pos = float(self.bird.rect.y)
@@ -146,7 +140,7 @@ class Game:
                 self.state = 'menu'
                 self.progress.set_high_score(self.score)
 
-        # During falling state: wait until bird hits ground, then end round.
+        
         if self.state == 'falling':
             if self.bird.rect.bottom >= self.ground_y:
                 self.bird.rect.bottom = self.ground_y
@@ -156,13 +150,10 @@ class Game:
                 self.progress.set_high_score(self.score)
 
     def updateEverything(self, dt):
-        # compute target move speed based on score (base + gain)
         target_move_speed = self.base_move_speed + min(150, int(self.score * 2))
-        # Use target_move_speed while playing; when falling or menu, the world must be frozen.
         if self.state == 'playing':
             self.move_speed = target_move_speed
 
-            # Moving ground
             self.ground1_rect.x -= int(self.move_speed * dt)
             self.ground2_rect.x -= int(self.move_speed * dt)
 
@@ -171,7 +162,6 @@ class Game:
             if self.ground2_rect.right < 0:
                 self.ground2_rect.x = self.ground1_rect.right
 
-            # Generating pipes (spawn interval shortens as score increases)
             spawn_threshold = max(45, 70 - self.score)
             if self.pipe_generate_counter > spawn_threshold:
                 self.pipes.append(Pipe(self.scale_factor_pipe, self.move_speed, score=self.score, screen_width=self.width, ground_y=self.ground_y))
@@ -179,7 +169,6 @@ class Game:
 
             self.pipe_generate_counter += 1
 
-            # Moving pipes and updating score
             for pipe in self.pipes:
                 pipe.move_speed = self.move_speed
                 pipe.update(dt)
@@ -188,48 +177,37 @@ class Game:
                     pipe.passed = True
                     self.check_for_unlocks()
 
-            # Removing offscreen pipes
             if len(self.pipes) != 0 and self.pipes[0].rect_up.right < 0:
                 self.pipes.pop(0)
 
         elif self.state == 'falling':
-            # WORLD FROZEN: do NOT move ground, do NOT spawn or move pipes.
-            # Only update the bird so it falls naturally under gravity.
             pass
 
         else:
-            # menu state: preview bird allowed but no world movement or pipe spawning
             pass
 
-        # Update bird always (preview, playing, or falling)
         self.bird.update(dt, ground_y=self.ground_y)
 
     def check_for_unlocks(self):
         for name, props in CHARACTERS.items():
             if props.get("unlock_score", 0) <= self.score and not self.progress.is_unlocked(name):
                 self.progress.unlock(name)
-                # no message shown; unlocked persists for menu
 
     def drawEverything(self):
-        # background (fills window)
         self.win.blit(self.bg_img, (0, 0))
 
-        # pipes (they stay where they were when falling/menu)
         for pipe in self.pipes:
             pipe.drawPipe(self.win)
 
-        # ground then bird (bird above ground)
         self.win.blit(self.ground1_img, self.ground1_rect)
         self.win.blit(self.ground2_img, self.ground2_rect)
         self.win.blit(self.bird.image, self.bird.rect)
 
-        # Draw Score and High Score (during play and also shown while menu)
         score_text = self.font.render(f"Score: {self.score}", True, SCORE_COLOR)
         hs_text = self.font.render(f"High Score: {self.progress.get_high_score()}", True, HIGH_SCORE_COLOR)
         self.win.blit(score_text, (30, 30))
         self.win.blit(hs_text, (30, 66))
 
-        # Show character menu only when in menu state
         if self.state == 'menu':
             menu_font = pg.font.Font(None, 28)
             text = menu_font.render("Character Menu (press number to select, ENTER to start)", True, MENU_TITLE_COLOR)
@@ -239,7 +217,6 @@ class Game:
             for name, props in CHARACTERS.items():
                 unlocked = self.progress.is_unlocked(name)
                 label = f"{i}. {props.get('display_name', name)}"
-                # choose color for this line
                 if not unlocked:
                     color = MENU_LOCKED_COLOR
                     label += "  (Locked)"
@@ -257,14 +234,12 @@ class Game:
             self.win.blit(hint, (30, y + 10))
 
     def setUpBgAndGround(self):
-        # Load bg and scale to window size explicitly
         bg = pg.image.load("assets/bg.png").convert()
         self.bg_img = pg.transform.smoothscale(bg, (self.width, self.height))
 
-        # Ground: scale to full width and compute height to sit at ground_y
         ground_src = pg.image.load("assets/ground.png").convert()
         ground_height = max(1, self.height - self.ground_y)
-        # use a tile-able ground scaled to cover width (two tiles for smooth scroll)
+        
         self.ground1_img = pg.transform.smoothscale(ground_src, (self.width, ground_height))
         self.ground2_img = pg.transform.smoothscale(ground_src, (self.width, ground_height))
 
@@ -276,7 +251,7 @@ class Game:
         self.ground1_rect.y = self.ground_y
         self.ground2_rect.y = self.ground_y
 
-        # pipe scale factor roughly based on image widths; keep this small and fixed
+        
         self.scale_factor_pipe = 0.169
 
 if __name__ == "__main__":

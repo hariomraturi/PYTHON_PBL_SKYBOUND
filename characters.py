@@ -1,13 +1,10 @@
-# Simple character definitions used by the game.
-# Tweak gravity (px/s^2) and flap_speed (px/s) to tune feel.
-# 'scale' is a small multiplier applied to the base sprite target height (not a direct scale_by).
 CHARACTERS = {
     "bird": {
         "display_name": "Bird",
         "unlock_score": 0,
-        "gravity": 900.0,       # px/s^2
-        "flap_speed": 300.0,    # px/s
-        "scale": 1.0,           # multiplier of base target height
+        "gravity": 900.0,       
+        "flap_speed": 300.0,    
+        "scale": 1.0,           
         "img_up": "assets/birdup.png",
         "img_down": "assets/birddown.png"
     },

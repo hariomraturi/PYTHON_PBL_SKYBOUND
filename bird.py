@@ -13,12 +13,10 @@ class Bird(pg.sprite.Sprite):
         self.char_name = char_name if char_name in CHARACTERS else "bird"
         char = CHARACTERS[self.char_name]
 
-        # Base target height in pixels (keeps bird small and consistent)
         base_target_height = 40
         scale_mult = char.get("scale", 1.0)
         target_height = max(12, int(base_target_height * scale_mult))
 
-        # Load images (try defined paths, fallback to name patterns, finally default)
         up_path = char.get("img_up", "")
         down_path = char.get("img_down", "")
 
@@ -30,13 +28,11 @@ class Bird(pg.sprite.Sprite):
         if img_down is None:
             img_down = safe_load_image(f"assets/{self.char_name}down.png") or safe_load_image(f"assets/{self.char_name}_down.png")
 
-        # final fallback to original bird images
         if img_up is None:
             img_up = safe_load_image("assets/birdup.png")
         if img_down is None:
             img_down = safe_load_image("assets/birddown.png")
 
-        # last resort colored surfaces
         if img_up is None:
             img_up = pg.Surface((34, 24), pg.SRCALPHA)
             img_up.fill((255, 200, 0))
@@ -44,7 +40,6 @@ class Bird(pg.sprite.Sprite):
             img_down = pg.Surface((34, 24), pg.SRCALPHA)
             img_down.fill((255, 120, 0))
 
-        # Compute scaled width to keep aspect ratio for both images
         def scale_to_height(img, desired_h):
             w, h = img.get_width(), img.get_height()
             if h == 0:
@@ -61,9 +56,8 @@ class Bird(pg.sprite.Sprite):
 
         self.rect = self.image.get_rect(center=start_pos)
 
-        # use float position for smooth physics
         self.y_pos = float(self.rect.y)
-        self.y_velocity = 0.0  # px/s
+        self.y_velocity = 0.0 
         self.gravity = float(char.get("gravity", 900.0))
         self.flap_speed = float(char.get("flap_speed", 300.0))
 
@@ -74,26 +68,25 @@ class Bird(pg.sprite.Sprite):
         if self.update_on:
             self.playAnimation()
             self.applyGravity(dt)
-            # clamp top
+
             if self.y_pos < 0:
                 self.y_pos = 0.0
                 if self.y_velocity < 0:
                     self.y_velocity = 0.0
             self.rect.y = int(self.y_pos)
 
-        # safety clamp to screen top
+        
         if self.rect.top < 0:
             self.rect.top = 0
             self.y_pos = float(self.rect.y)
 
     def applyGravity(self, dt):
-        # integrate velocity (px/s) and position
+        
         self.y_velocity += self.gravity * dt
         self.y_pos += self.y_velocity * dt
         self.rect.y = int(self.y_pos)
 
     def flap(self):
-        # immediate upward velocity in px/s
         self.y_velocity = -self.flap_speed
 
     def playAnimation(self):
